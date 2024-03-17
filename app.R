@@ -1,6 +1,16 @@
 packs <- c("dplyr","ggplot2","shiny","DT","ggrepel","tidyr","shinycssloaders",
            "shinythemes","ggfortify","leaflet","ggthemes")
 #install.packages(packs)
+library(e1071)
+library(naivebayes)
+library(randomForest)
+library(caret)
+library(class)
+library(lightgbm)
+library(randomForest)
+library(gbm)
+library(xgboost)
+
 library(dplyr)
 library(ggplot2)
 library(shiny)
@@ -87,32 +97,23 @@ ui <- fluidPage(
   #Navbar structure for UI
   navbarPage("Pied Piper", theme = shinytheme("flatly"),
              navbarMenu("About", icon = icon("info-circle"),
-                        tabPanel("Our Dataset", fluid = TRUE,
-                                 fluidRow(
-                                   column(6,
-                                          h4(p("ABOUT THE DATA")),
-                                          h5(p("This data was acquired from the UNHCR Population Statistics database. It presents information about asylum applications lodged in almost 200 countries across the globe between the years 2000 and 2014. Data are broken down by month and country of origin."),
-                                             p("UNHCR's populations of concern include refugees, asylum-seekers, Internally Displaced Persons (IDPs), stateless persons and individuals who do not necessarily fall directly into any of the groups above, but to whom UNHCR extends its protection and/or assistance services, based on humanitarian or other special grounds."),
-                                             p("Sources include UNHCR Population Statistics and UNHCR Populations of Concern."),
-                                             )
-                                   )
-                                   )
-                                 
-                        ),
-                        
                         tabPanel("Our Work", fluid = TRUE,
                                  fluidRow(
                                    column(6,
                                           #br(),
                                           h4(p("ABOUT THE PROJECT")),
-                                          h5(p("Our data gave us a chance to access information about people who had been forced to leave their homes and hope for a better life ahead. As international students, we instantly connected and related to the idea! We come from countries where many have faced these problems firsthand and we understand how huge of a problem this is. We believe that the plight of these people is an underrecognized determinant of humanity our societal progression and should be given the importance it deserves. It should discussed by more people on more levels, thus, we decided to bring it up!")),
+                                          h5(p("In response to the growing need for empirical insights into the experiences of asylum seekers, our project focuses on analyzing a 
+                                               comprehensive dataset using RShiny, a web application framework in R. Through this endeavor, and we aim to provide a nuanced understanding of 
+                                               asylum migration dynamics, exploring patterns, trends, and potential predictors of asylum outcomes.")),
                                           br(),
-                                          h5(p("Our interactive app can provide easy access to over 100,000 datapoints collected for 14 variables over the span of 15 years! This can not only prove to be helpful for people who want to learn about this grave issue, but also for human rights activists who want easy access to facts AND the underprivileged people who want to find the safest place for refuge and asylum. ")),
+                                          h5(p("Our interactive application offers seamless access to a vast repository of over 100,000 data points spanning 14 variables across a 15-year timeframe.
+                                               Our endeavor extends beyond mere data dissemination; it aims to serve as a resource for individuals seeking to deepen their understanding of this 
+                                               pressing humanitarian issue. ")),
                                           br(),
-                                          h5(p("We provide a range of services: from smart searching and exploration of the data, to stunning and easy to understand visuals (including maps, plots and linear regression models).")),
+                                          h5(p("We provide a range of services: from smart searching and exploration of the data, to easy to understand visuals (including maps, plots and Machine-Learning models).")),
                                           br(),
                                           h5(p("I hope you find it interesting and/or useful.  Any comments or questions are welcome at piedpipers@gmail.com"),
-                                             p("The source code for this Shiny app is available ", a("world.data", href = "https://data.world/unhcr/asylum-applications/workspace/file?filename=asylum_seekers_refugee_status.csv"), "."))
+                                             p("The source code for this Shiny app is available on ", a("Github", href = "https://github.com/sn1887/Asylum-Seekers/tree/main"), "."))
                                           
                                           #hr(),
                                           
@@ -121,10 +122,16 @@ ui <- fluidPage(
                                           #br(),
                                           #             HTML('<img src="GregPicCrop.png", height="110px"
                                           # style="float:right"/>','<p style="color:black"></p>'),
-                                          h4(h4(p("ABOUT THE TEAM")),
-                                             h5(p("A dynamic group of five international students from the Statistics department. Brilliant minds from four different countries, being nurtured and honed by the diligent professors in one of the most prestigious institutions in Turkey. "),
-                                                p("Our greatest strength lies in our diversity: the diversity of our ideas, our skill sets, our viewpoints and our experiences. Everyone has something special to offer and every single one of us plays a vital role. "),
-                                                p("Our shared ambitions - a brighter future and a better world - motivate us to work together to overcome any obstacles that may come in the path of actualizing our dreams!"),
+                                          h4(h4(p("ABOUT THE Data")),
+                                             h5(p("This data was acquired from the UNHCR Population Statistics database. It presents information about asylum applications lodged in almost 200 
+                                                  countries across the globe between the years 2000 and 2014. Data are broken down by month and country of origin. "),
+                                                
+                                                p("UNHCR's populations of concern include refugees, asylum-seekers, Internally Displaced Persons (IDPs), 
+                                                stateless persons, and individuals who do not necessarily fall directly into any of the 
+                                                groups above but to whom UNHCR extends its protection 
+                                                and assistance services based on humanitarian or other special grounds. "),
+                                                
+                                                p("Sources include UNHCR Population Statistics and UNHCR Populations of Concern."),
                                              )),
                                           br()
                                    )
@@ -157,8 +164,8 @@ ui <- fluidPage(
                         
                         fluidRow(
                           column(12,selectInput("num_var", label = "Choose variable:", 
-                                    choices = as.list(colnames(d3))[-c(1,2,3,4)],
-                                    selected ="Total.persons.pending.start.year"))),
+                                                choices = as.list(colnames(d3))[-c(1,2,3,4)],
+                                                selected ="Total.persons.pending.start.year"))),
                         
                         
                         sliderInput("year1", "Year:",
@@ -312,6 +319,11 @@ ui <- fluidPage(
                                                     "Total decisions" = "Total.decisions",
                                                     "Total pending at the end of year" = "Total.persons.pending.end.year",
                                                     "Of which UNHCR assisted" = "of.which.UNHCR.assisted.1"), selected = 1))), 
+                          selectInput("model_choice", label = h5("Choose a model"), 
+                                      choices = c(
+                                        "MLR", "SVR", "Random Forest"
+                                        , "Naive Bayes", 'K-Nearest Neighbors', "XGBoost", "LightGBM"
+                                      )),
                           
                           fluidRow(
                             column(12,
@@ -392,9 +404,9 @@ ui <- fluidPage(
                         )
                         
                       )
-                          
-                            
-                          ),
+                      
+                      
+             ),
              tabPanel("Questions",icon = icon("question-circle"),
                       fluid = TRUE,
                       fluidRow(
@@ -416,14 +428,14 @@ ui <- fluidPage(
                                )
                         )
                       ))
-                      ))
-                          
-                      
-                      
-                        
-             
-             
-             
+  ))
+
+
+
+
+
+
+
 
 
 
@@ -602,14 +614,14 @@ server <- function(input, output) {
   
   output$myplot <- renderPlot({
     d3 = read.csv("asylum_seekers_refugee_status.csv", skip = 3, header = T)
-      
-      for (i in names(d3[-c(2,3,4)])){
-        new_i <- c()
-        for (j in d3[i]){
-          new_i <- c(new_i, as.numeric(j))
-        }
-        d3[i] <- new_i
+    
+    for (i in names(d3[-c(2,3,4)])){
+      new_i <- c()
+      for (j in d3[i]){
+        new_i <- c(new_i, as.numeric(j))
       }
+      d3[i] <- new_i
+    }
     plot <- function(d3){
       
       
@@ -640,7 +652,7 @@ server <- function(input, output) {
         t <- paste0('ggplot(data = subdata, mapping=aes_string(input$select1,input$select2))+
         geom_point',"(size=",input$size, ",",input$color,'+
         theme(axis.text.x = element_text(angle = 40, hjust = 1, size=13))',input$theme,
-                       facet, jitter,linearR,violin, lognomial, box)
+                    facet, jitter,linearR,violin, lognomial, box)
         eval(parse(text=t))
         
       }
@@ -668,7 +680,7 @@ server <- function(input, output) {
         t <- paste0('ggplot(data = d3, mapping=aes_string(input$select1,input$select2))+
         geom_point',"(size=",input$size, ",",input$color,'+
         theme(axis.text.x = element_text(angle = 40, hjust = 1, size=13))',input$theme,
-                      facet, jitter,linearR, violin,lognomial,box)
+                    facet, jitter,linearR, violin,lognomial,box)
         eval(parse(text=t))}
     }
     f <- function(d3){
@@ -738,7 +750,7 @@ server <- function(input, output) {
         t <- paste0('ggplot(data = subdata, mapping=aes_string(input$select1,input$select2))+
         geom_point',"(size=",input$size, ",",input$color,'+
         theme(axis.text.x = element_text(angle = 40, hjust = 1, size=13))',input$theme,
-                       facet, jitter,linearR, violin, lognomial,box,'+
+                    facet, jitter,linearR, violin, lognomial,box,'+
                       labs(title = "',title,'",
                             caption ="Downloded from Pied Piper shiny app")')
         eval(parse(text=t))
@@ -771,7 +783,7 @@ server <- function(input, output) {
         t <- paste0('ggplot(data = d3, mapping=aes_string(input$select1,input$select2))+
         geom_point',"(size=",input$size, ",",input$color,'+
         theme(axis.text.x = element_text(angle = 40, hjust = 1, size=13))',input$theme,
-                       facet, jitter, linearR,violin, lognomial,box,'+
+                    facet, jitter, linearR,violin, lognomial,box,'+
                       labs(title = "',title,'",
                             caption ="Downloded from Pied Piper shiny app")')
         eval(parse(text=t))}
@@ -812,14 +824,162 @@ server <- function(input, output) {
   
   #######################################
   ####################################### Abdul Samad
-  
-  # Regression output
-  output$summary <- renderPrint({
+  model <- reactive({
     y1 = d3[,input$outcome] ## outcome variable
     x1 = d3[,input$indepvar] ## independant variable
+    subset_size <- 2500  # take a subset size
+    x1 = x1[sample(subset_size)]
+    y1 = y1[sample(subset_size)]
     
-    fit <- lm(y1 ~ x1)
-    summary(fit)
+    if (input$model_choice == "MLR") {
+      
+      summary(lm(y1 ~ x1))
+    } 
+    
+    
+    else if (input$model_choice == "SVR") {
+      model <- svm(y1 ~ x1, kernel = "linear")
+      summary(model)  # Print the model summary
+    }
+    
+    
+    
+    else if (input$model_choice == "Naive Bayes") {
+      naiveBayes(y1 ~ x1, data = cbind(x1,y1))
+    }
+    
+    
+    ############################################################### 
+    else if (input$model_choice == "Random Forest") {
+      
+      # Build the Random Forest model
+      model <- randomForest(y1 ~ x1)
+      
+      # Print the model
+      print(model)
+      
+      # Display variable importance
+      var_importance <- model$importance
+      print("Variable Importance:")
+      print(var_importance)
+    }
+    else if (input$model_choice == "K-Nearest Neighbors"){
+      
+      data = cbind(x1,y1)
+      
+      parts = sample(2500 * .9)
+      train = data[parts, ]
+      test = data[-parts, ]
+      
+      
+      train = data.matrix(train)
+      test = data.matrix(test)
+      
+      train = as.matrix(train)
+      test = as.matrix(test)
+      
+      train_scaled = scale(train[, -1])
+      test_scaled = scale(test[, -1])
+      
+      
+      test_pred <- knn(
+        train = train_scaled, 
+        test = test_scaled,
+        cl = as.data.frame(train)$y1, 
+        k=10
+      )
+      
+      actual <- as.data.frame(test)$y1
+      print(summary(test_pred))
+      cm <- table(actual,test_pred)
+      print(cm)
+      accuracy <- sum(diag(cm))/length(actual)
+      sprintf("Accuracy: %.2f%%", (1 - accuracy)*100)
+      print(test_pred)
+    }
+    ###############################################################
+    
+    
+    
+    else if (input$model_choice == "LightGBM"){
+      
+      data = cbind(x1,y1)
+      
+      parts = sample(2500 * .9)
+      train = data[parts, ]
+      test = data[-parts, ]
+      
+      
+      #define predictor and response variables in training set
+      train_x1 = as.matrix(train[,-ncol(train)])
+      train_y = as.matrix(train[,"y1"])
+      
+      #define predictor and response variables in testing set
+      test_x1 = as.matrix(test[,-ncol(test)])
+      test_y = as.matrix(test[,"y1"])
+      
+      # Data interface
+      dtrain <- lgb.Dataset(train_x1, label = train_y)
+      
+      # Parameters
+      params <- list(
+        objective = "binary"
+        , num_leaves = 4L
+        , learning_rate = 1.0
+      )
+      
+      # Train
+      fit <- lgb.train(
+        params
+        , data = dtrain
+        , nrounds = 10L
+        , verbose = -1L
+      )
+      print("summary of the model results:")
+      print(summary(predict(fit, test_x1) == test_y))
+      print("")
+      print("")
+      print("")
+      print("the models used:")
+      print(lgb.train(
+        params
+        , data = dtrain
+        , nrounds = 10L
+        , verbose = -1L
+      ))
+    }
+    
+    
+    else if (input$model_choice == "XGBoost"){
+      
+      data = cbind(x1,y1)
+      
+      parts = sample(2500 * .9)
+      train = data[parts, ]
+      test = data[-parts, ]
+      
+      
+      #define predictor and response variables in training set
+      train_x1 = as.matrix(train[,-ncol(train)])
+      train_y = as.matrix(train[,"y1"])
+      
+      #define predictor and response variables in testing set
+      test_x1 = as.matrix(test[,-ncol(test)])
+      test_y = as.matrix(test[,"y1"])
+      
+      
+      
+      #define final training and testing sets
+      xgb_train = xgb.DMatrix(data = train_x1, label = train_y)
+      xgb_test = xgb.DMatrix(data = test_x1, label = test_y)
+      watchlist = list(train=xgb_train, test=xgb_test)
+      xgb.train(data = xgb_train, max.depth = 3, watchlist=watchlist, nrounds = 50)
+    }
+
+  })
+  
+  output$summary <- renderPrint({
+    model()
   })
   
   # Prediction output
