@@ -25,7 +25,6 @@ If you have any questions, comments, or suggestions regarding the dataset, the R
 We hope you find this repository interesting and useful in your endeavors. Thank you for your interest!
 
 ---
-Feel free to customize the README further to include additional information or specific instructions for users.
 
 
 
