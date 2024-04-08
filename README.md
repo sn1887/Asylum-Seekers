@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Welcome to the Asylum-Seekers repository! This project is the culmination of the final project for the Statistical Computing course (STAT292). Utilizing RShiny, the project offers a comprehensive exploration of asylum application data sourced from the UNHCR Population Statistics database. It encompasses data visualization, exploration, and the implementation of machine learning algorithms tailored for regression tasks.
+Welcome to the Asylum-Seekers repository! This project is the culmination of the final project for the Statistical Computing course (STAT292). Utilizing RShiny, the project offers a comprehensive exploration of asylum application data sourced from the UNHCR Population Statistics database. It encompasses data visualization, exploration, and the implementation of machine learning algorithms tailored for regression tasks. The project web link could be accessed through this [link](https://abtinmogharabin.shinyapps.io/pied-piper_final_project/).
 
 ## About the Data
 
